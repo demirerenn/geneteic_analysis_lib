@@ -189,7 +189,7 @@ def editDistance(x, y):
 
 
 # ==============================================================================
-# BÖLÜM 3: GELİŞMİŞ EŞLEŞTİRME ALGORİTMALARI
+# BÖLÜM 3: GELİŞMİŞ EŞLEŞTİRME VE HİZALAMA ALGORİTMALARI
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -412,8 +412,6 @@ def approximate_match(p, t, n):
         end = min((i + 1) * segment_length, len(p))
         p_segment = p[start:end]
 
-        # Boyer-Moore yerine daha basit bir algoritma da kullanılabilir.
-        # Hız için Boyer-Moore'u tutuyoruz.
         p_bm = BoyerMoore(p_segment, alphabet='ACGTN')
         matches = boyer_moore(p_segment, t)
 
@@ -421,7 +419,6 @@ def approximate_match(p, t, n):
             if m < start or m - start + len(p) > len(t):
                 continue
             mismatches = 0
-            # Eşleşen segmentin öncesini ve sonrasını kontrol et
             for j in range(0, start):
                 if not p[j] == t[m - start + j]:
                     mismatches += 1
@@ -433,3 +430,53 @@ def approximate_match(p, t, n):
                 all_matches.add(m - start)
 
     return list(all_matches)
+
+
+# ------------------------------------------------------------------------------
+# Global Alignment (Needleman-Wunsch) - YENİ EKLENEN BÖLÜM
+# ------------------------------------------------------------------------------
+
+# Skorlama matrisi: A, C, G, T ve boşluk (-) için uyum/uyumsuzluk/boşluk cezaları
+alphabet = ['A', 'C', 'G', 'T']
+score = [[0, 4, 2, 4, 8],  # A ile A,C,G,T,- skorları
+         [4, 0, 4, 2, 8],  # C ile A,C,G,T,- skorları
+         [2, 4, 0, 4, 8],  # G ile A,C,G,T,- skorları
+         [4, 2, 4, 0, 8],  # T ile A,C,G,T,- skorları
+         [8, 8, 8, 8, 8]]  # - (boşluk) ile A,C,G,T,- skorları
+
+
+def globalAlignment(x, y):
+    """
+    Needleman-Wunsch algoritmasını kullanarak iki dizi arasındaki en iyi
+    global hizalama skorunu hesaplar. Minimum skor hedeflenir.
+
+    Args:
+        x (str): Birinci dizi.
+        y (str): İkinci dizi.
+
+    Returns:
+        int: Optimal global hizalama skoru.
+    """
+    # Uzaklık matrisini oluştur
+    D = []
+    for i in range(len(x) + 1):
+        D.append([0] * (len(y) + 1))
+
+    # İlk sütunu başlat
+    for i in range(1, len(x) + 1):
+        D[i][0] = D[i - 1][0] + score[alphabet.index(x[i - 1])][-1]
+
+    # İlk satırı başlat
+    for j in range(1, len(y) + 1):
+        D[0][j] = D[0][j - 1] + score[-1][alphabet.index(y[j - 1])]
+
+    # Matrisin geri kalanını doldur
+    for i in range(1, len(x) + 1):
+        for j in range(1, len(y) + 1):
+            distHor = D[i][j - 1] + score[-1][alphabet.index(y[j - 1])]
+            distVer = D[i - 1][j] + score[alphabet.index(x[i - 1])][-1]
+            distDiag = D[i - 1][j - 1] + score[alphabet.index(x[i - 1])][alphabet.index(y[j - 1])]
+            D[i][j] = min(distHor, distVer, distDiag)
+
+    # Sağ alt köşedeki değeri döndür
+    return D[-1][-1]
