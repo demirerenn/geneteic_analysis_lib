@@ -4,6 +4,7 @@ import bisect
 import collections
 import string
 import random
+import itertools  # YENİ EKLENDİ
 
 
 # ==============================================================================
@@ -433,7 +434,7 @@ def approximate_match(p, t, n):
 
 
 # ------------------------------------------------------------------------------
-# Global Alignment (Needleman-Wunsch) - YENİ EKLENEN BÖLÜM
+# Global Alignment (Needleman-Wunsch)
 # ------------------------------------------------------------------------------
 
 # Skorlama matrisi: A, C, G, T ve boşluk (-) için uyum/uyumsuzluk/boşluk cezaları
@@ -480,3 +481,52 @@ def globalAlignment(x, y):
 
     # Sağ alt köşedeki değeri döndür
     return D[-1][-1]
+
+
+# ==============================================================================
+# BÖLÜM 4: DİZİ BİRLEŞTİRME (ASSEMBLY) İÇİN OVERLAP FONKSİYONLARI - YENİ
+# ==============================================================================
+
+def overlap(a, b, min_length=3):
+    """
+    'a' dizisinin 'b' dizisinin başına uyan en uzun son parçasının (suffix)
+    uzunluğunu döndürür. Bu parçanın uzunluğu en az 'min_length' olmalıdır.
+    Eğer böyle bir overlap yoksa 0 döndürür.
+
+    Args:
+        a (str): Birinci dizi.
+        b (str): İkinci dizi.
+        min_length (int): Minimum overlap uzunluğu.
+
+    Returns:
+        int: En uzun overlap'in uzunluğu veya 0.
+    """
+    start = 0
+    while True:
+        # b'nin ilk min_length parçasını a içinde ara
+        start = a.find(b[:min_length], start)
+        if start == -1:  # Daha fazla eşleşme yoksa
+            return 0
+        # Eşleşme bulundu; tam suffix/prefix uyumunu kontrol et
+        if b.startswith(a[start:]):
+            return len(a) - start
+        start += 1  # Bir sonraki pozisyondan aramaya devam et
+
+
+def naive_overlap_map(reads, k):
+    """
+    Verilen read'ler arasındaki tüm olası overlap'leri bulur.
+
+    Args:
+        reads (list): DNA read'lerinin listesi.
+        k (int): Minimum overlap uzunluğu.
+
+    Returns:
+        dict: (read1, read2): overlap_uzunlugu formatında bir sözlük.
+    """
+    olaps = {}
+    for a, b in itertools.permutations(reads, 2):
+        olen = overlap(a, b, min_length=k)
+        if olen > 0:
+            olaps[(a, b)] = olen
+    return olaps
