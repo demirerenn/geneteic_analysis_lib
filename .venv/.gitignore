@@ -1,9 +1,0 @@
-# PyCharm IDE
-.idea/
-
-# Python
-__pycache__/
-*.pyc
-
-# Virtual Environment
-.venv/
