@@ -585,3 +585,48 @@ def greedy_scs(reads, k):
         read_a, read_b, olen = pick_maximal_overlap(reads, k)
     return ''.join(reads)
 
+# ==============================================================================
+# BÖLÜM 5: DE BRUIJN GRAFİKLERİ İLE ASSEMBLY - YENİ
+# ==============================================================================
+
+def de_bruijn_ize(st, k):
+    """
+    Bir diziden De Bruijn grafiği oluşturur.
+    Her k-mer için, sol (k-1)-mer ve sağ (k-1)-mer çiftlerini bir kenar (edge)
+    olarak döndürür. Ayrıca tüm düğümleri (node) de bir set olarak verir.
+
+    Args:
+        st (str): DNA dizisi.
+        k (int): k-mer uzunluğu.
+
+    Returns:
+        tuple: (nodes, edges) formatında bir tuple.
+    """
+    edges = []
+    nodes = set()
+    for i in range(len(st) - k + 1):
+        edges.append((st[i:i + k - 1], st[i + 1:i + k]))
+        nodes.add(st[i:i + k - 1])
+        nodes.add(st[i + 1:i + k])
+    return nodes, edges
+
+
+def visualize_de_bruijn(st, k):
+    """
+    Bir De Bruijn grafiğini görselleştirmek için DOT formatında bir string oluşturur.
+    Bu string, Graphviz gibi bir araçla görselleştirilebilir.
+
+    Args:
+        st (str): DNA dizisi.
+        k (int): k-mer uzunluğu.
+
+    Returns:
+        str: Grafiğin DOT formatındaki metin gösterimi.
+    """
+    nodes, edges = de_bruijn_ize(st, k)
+    dot_str = 'digraph "DeBruijn graph" {\\n'
+    for node in nodes:
+        dot_str += '  %s [label="%s"] ;\\n' % (node, node)
+    for src, dst in edges:
+        dot_str += '  %s -> %s ;\\n' % (src, dst)
+    return dot_str + '}\\n'
