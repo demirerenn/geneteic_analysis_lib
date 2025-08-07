@@ -614,22 +614,17 @@ def de_bruijn_ize(st, k):
 def visualize_de_bruijn(st, k):
     """
     Bir De Bruijn grafiğini görselleştirmek için DOT formatında bir string oluşturur.
-    Bu string, Graphviz gibi bir araçla görselleştirilebilir.
-    (Kullanıcı tarafından sağlanan düzeltilmiş versiyon.)
-
     Args:
         st (str): DNA dizisi.
         k (int): k-mer uzunluğu.
-
     Returns:
         str: Grafiğin DOT formatındaki metin gösterimi.
     """
     nodes, edges = de_bruijn_ize(st, k)
-    # Satırları bir listede biriktirip sonda birleştirmek daha verimli ve temizdir.
-    lines = ['digraph "DeBruijn graph" {']
-    for node in sorted(nodes):  # sorted() ekleyerek çıktıyı deterministik hale getirelim
+    lines = ['digraph DeBruijn {']               # ← Burada grafik adı sade ve tırnaksız
+    for node in sorted(nodes):
         lines.append(f'  "{node}" [label="{node}"];')
     for src, dst in edges:
         lines.append(f'  "{src}" -> "{dst}";')
     lines.append('}')
-    return "\\n".join(lines)
+    return "\n".join(lines)                     # ← Gerçek newline karakterlerini kullan
