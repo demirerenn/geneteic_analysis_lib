@@ -586,7 +586,7 @@ def greedy_scs(reads, k):
     return ''.join(reads)
 
 # ==============================================================================
-# BÖLÜM 5: DE BRUIJN GRAFİKLERİ İLE ASSEMBLY - YENİ
+# BÖLÜM 5: DE BRUIJN GRAFİKLERİ İLE ASSEMBLY
 # ==============================================================================
 
 def de_bruijn_ize(st, k):
@@ -615,6 +615,7 @@ def visualize_de_bruijn(st, k):
     """
     Bir De Bruijn grafiğini görselleştirmek için DOT formatında bir string oluşturur.
     Bu string, Graphviz gibi bir araçla görselleştirilebilir.
+    (Kullanıcı tarafından sağlanan düzeltilmiş versiyon.)
 
     Args:
         st (str): DNA dizisi.
@@ -624,9 +625,11 @@ def visualize_de_bruijn(st, k):
         str: Grafiğin DOT formatındaki metin gösterimi.
     """
     nodes, edges = de_bruijn_ize(st, k)
-    dot_str = 'digraph "DeBruijn graph" {\\n'
-    for node in nodes:
-        dot_str += '  %s [label="%s"] ;\\n' % (node, node)
+    # Satırları bir listede biriktirip sonda birleştirmek daha verimli ve temizdir.
+    lines = ['digraph "DeBruijn graph" {']
+    for node in sorted(nodes):  # sorted() ekleyerek çıktıyı deterministik hale getirelim
+        lines.append(f'  "{node}" [label="{node}"];')
     for src, dst in edges:
-        dot_str += '  %s -> %s ;\\n' % (src, dst)
-    return dot_str + '}\\n'
+        lines.append(f'  "{src}" -> "{dst}";')
+    lines.append('}')
+    return "\\n".join(lines)
